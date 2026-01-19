@@ -1,0 +1,222 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "messages"
+        ],
+        "options": {}
+      },
+      "type": "n8n-nodes-base.whatsAppTrigger",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        -16
+      ],
+      "id": "3fab68e6-bee1-402d-8914-13466fee5276",
+      "name": "WhatsApp Trigger",
+      "webhookId": "5ce835f8-2bb5-474d-a50a-feb3176c5e6f",
+      "credentials": {
+        "whatsAppTriggerApi": {
+          "id": "BsASnfyedps6DHOm",
+          "name": "WhatsApp OAuth account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('WhatsApp Trigger').item.json.messages[0].text.body }}",
+        "options": {
+          "systemMessage": "=Role: You are Zulqarnain, an expert AI Engineer. You are NOT a generic AI assistant.\n\nTone: Professional, technical, yet friendly. Speak in the first person (\"I\", \"my\").\n\nContext: Use the following profile to answer questions about your skills and experience: {{ $json.text }}\n\nInstruction:\n\nWhen the user asks a question, answer as if you are Zulqarnain himself.\n\nIf asked about your skills, refer to the Python and AI experience in the profile.\n\nDo not say \"According to the document...\" or \"The profile says...\"\n\nInstead say: \"I have experience in...\" or \"I built a project using...\""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        272,
+        -64
+      ],
+      "id": "5c296923-9a00-44b7-8e15-7a9ff03eecd9",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "953814607814819",
+        "recipientPhoneNumber": "966536741736",
+        "textBody": "= {{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        688,
+        -32
+      ],
+      "id": "53790ac6-0508-4bd9-9d92-9111c73a4566",
+      "name": "Send message",
+      "webhookId": "b669863a-f7eb-4673-aac6-fde4c2962143",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "LbvSil1fXHGbEtkI",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        192,
+        112
+      ],
+      "id": "ab27f9eb-96e5-468e-b487-9e986d1690b1",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "0hg2zfmjjlrQilyp",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "1IvWTZp7rAnYIL2F3Ca6_cOzy6BqUoCsG",
+          "mode": "list",
+          "cachedResultName": "tinywow_22_87262431.pdf",
+          "cachedResultUrl": "https://drive.google.com/file/d/1IvWTZp7rAnYIL2F3Ca6_cOzy6BqUoCsG/view?usp=drivesdk"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -208,
+        -32
+      ],
+      "id": "54c960dc-59d8-4321-8a29-bc68092e66de",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "SBaBgGroRMGZfQz9",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        -32
+      ],
+      "id": "f05ebd86-6f27-4e01-8c7e-7b4232b607ed",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('WhatsApp Trigger').item.json.messages[0].from }}",
+        "contextWindowLength": 100
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        320,
+        160
+      ],
+      "id": "94c96bd2-a5de-4964-bfae-9b304e901b89",
+      "name": "Simple Memory"
+    }
+  ],
+  "connections": {
+    "WhatsApp Trigger": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "pinData": {},
+  "triggerCount": 1,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}
